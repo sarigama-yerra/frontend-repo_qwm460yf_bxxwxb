@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState, lazy, Suspense } from 'react'
 import { Camera, CheckCircle, RefreshCw, User, ClipboardList } from 'lucide-react'
-import Scanner from './components/Scanner'
+import ErrorBoundary from './components/ErrorBoundary'
+
+const Scanner = lazy(() => import('./components/Scanner'))
 
 const BACKEND = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
 
@@ -39,7 +41,6 @@ function App() {
 
   const onScanResult = (text) => {
     if (!text) return
-    // lock single result to avoid duplicates
     if (scanned) return
     setScanned(String(text))
   }
@@ -101,7 +102,11 @@ function App() {
 
         {!scanned && (
           <div className="mt-2 space-y-3">
-            <Scanner onResult={onScanResult} />
+            <ErrorBoundary>
+              <Suspense fallback={<div className="rounded-xl border border-gray-200 p-4 text-sm text-gray-600">Memuat pemindai...</div>}>
+                <Scanner onResult={onScanResult} />
+              </Suspense>
+            </ErrorBoundary>
             <div className="text-center">
               <button onClick={() => setScanned('') } className="hidden" aria-hidden="true">reset</button>
             </div>
